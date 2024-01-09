@@ -68,12 +68,17 @@ class Avatar(QMainWindow):
     
 
     def animate(self) -> None:
-        for i in range(20):
-            self.label.move(0, self.label.y() - 2)
+        # Scales the jump animation to the size of the avatar
+        step = (self.label.height() * 20) // 622
+        jump_step = (self.label.height() * 2) // 622
+
+        # Jump animation
+        for _ in range(step):
+            self.label.move(0, self.label.y() - jump_step)
             sleep(0.01)
 
-        for i in range(20):
-            self.label.move(0, self.label.y() + 2)
+        for _ in range(step):
+            self.label.move(0, self.label.y() + jump_step)
             sleep(0.01)
 
 
@@ -86,13 +91,14 @@ class Avatar(QMainWindow):
         CHUNK = 1024
         
         p = pyaudio.PyAudio()
-
         stream = p.open(format=pyaudio.paInt16, channels=1, rate=44100, input=True, frames_per_buffer=CHUNK)
 
         while True:
+            # Read audio data
             data = stream.read(CHUNK)
             frame = np.frombuffer(data, dtype=np.int16)
 
+            # Check if sound is loud enough
             if self.is_sound(frame) and not self.animation_thread.is_alive():
                     self.animation_thread = Thread(target=self.animate)
                     self.animation_thread.start()

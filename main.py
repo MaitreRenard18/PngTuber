@@ -13,5 +13,5 @@ if __name__ == "__main__":
 
     pablo_manager = AvatarManager(pablo)
     pablo_manager.show()
-
+    
     app.exec_()
