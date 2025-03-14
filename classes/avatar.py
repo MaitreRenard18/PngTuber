@@ -6,10 +6,15 @@ import numpy as np
 import pyaudio
 import PyQt5
 from PyQt5.QtGui import QPixmap
-from PyQt5.QtWidgets import QLabel, QMainWindow
+from PyQt5.QtWidgets import QLabel, QWidget
 
 
-class Avatar(QMainWindow):
+def is_sound(frame, threshold = 150) -> bool:
+    energy = np.sum(np.abs(frame)) / len(frame)
+    return energy > threshold
+
+
+class Avatar(QWidget):
     def __init__(self, avatar, avatar_name="VTuber") -> None:
         super().__init__()
         self.avatar_name = avatar_name
@@ -24,7 +29,7 @@ class Avatar(QMainWindow):
         self.scale_factor = .15
 
         self.label = QLabel(self)
-        self.pablo = QPixmap(str(Path(f"avatars/{avatar}.png")))
+        self.pablo = QPixmap(str(Path(f"avatars/{avatar}/expressions/default.png")))
         self.label.setPixmap(self.pablo)
 
         self.pablo_size = (0, 0, int(self.pablo.width() * self.scale_factor), int(self.pablo.height() * self.scale_factor))
@@ -53,19 +58,16 @@ class Avatar(QMainWindow):
 
         # Set up animation thread
         self.animation_thread = Thread(target=self.animate)
-        
 
     def on_click(self, event) -> None:
         self.mouse_hold = not self.mouse_hold
         self.mouse_offset = event.pos()
 
-
     def mouseMoveEvent(self, event) -> None:
         if not self.mouse_hold:
             return 
         
-        self.move(event.globalPos() - self.mouse_offset)
-    
+        self.move(event.globalPos() - self.mouse_offset - self.label.pos())
 
     def animate(self) -> None:
         # Scales the jump animation to the size of the avatar
@@ -81,12 +83,6 @@ class Avatar(QMainWindow):
             self.label.move(0, self.label.y() + jump_step)
             sleep(0.01)
 
-
-    def is_sound(self, frame, threshold = 150) -> bool:
-        energy = np.sum(np.abs(frame)) / len(frame)
-        return energy > threshold
-
-
     def listen_for_sound(self) -> None:
         CHUNK = 1024
         
@@ -99,6 +95,6 @@ class Avatar(QMainWindow):
             frame = np.frombuffer(data, dtype=np.int16)
 
             # Check if sound is loud enough
-            if self.is_sound(frame) and not self.animation_thread.is_alive():
+            if is_sound(frame) and not self.animation_thread.is_alive():
                     self.animation_thread = Thread(target=self.animate)
                     self.animation_thread.start()

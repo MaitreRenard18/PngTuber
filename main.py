@@ -4,6 +4,7 @@ from PyQt5.QtWidgets import QApplication
 
 from classes.avatar import Avatar
 from classes.manager import AvatarManager
+from classes.startwindow import StartupWindow
 
 if __name__ == "__main__":
     app = QApplication(sys.argv)
@@ -14,4 +15,5 @@ if __name__ == "__main__":
     pablo_manager = AvatarManager(pablo)
     pablo_manager.show()
     
+    # start_window = StartupWindow()
     app.exec_()
